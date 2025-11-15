@@ -1,0 +1,12 @@
+# Contoh isi .gitignore
+# dependencies
+node_modules/
+vendor/
+# docker
+*.sock
+*.pid
+# logs
+log/
+tmp/
+# environment variables
+.env
