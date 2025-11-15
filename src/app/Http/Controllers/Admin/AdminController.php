@@ -4,24 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Booking; // <-- Import model Booking
+use App\Models\Booking;
+use App\Models\User; // <-- TAMBAHKAN INI (walau bisa via relasi)
+use App\Notifications\BookingStatusNotification; // <-- TAMBAHKAN INI
 
 class AdminController extends Controller
 {
     /**
-     * Menampilkan dashboard admin dengan semua booking 'pending'.
+     * Menampilkan dashboard admin.
      */
     public function dashboard()
     {
-        // Ambil semua booking yang statusnya 'pending'
-        // 'with' digunakan agar data user dan room ikut terambil (menghindari N+1 query)
-        // 'latest()' agar yang terbaru di atas
         $pendingBookings = Booking::where('status', 'pending')
                                   ->with('user', 'room')
                                   ->latest()
-                                  ->paginate(10); // Kita pakai paginate agar rapi
+                                  ->paginate(10);
         
-        // Kirim data ke view
         return view('admin.dashboard', compact('pendingBookings'));
     }
 
@@ -30,11 +28,14 @@ class AdminController extends Controller
      */
     public function approve(Booking $booking)
     {
-        // Ganti statusnya menjadi 'approved'
+        // 1. Ubah status
         $booking->update(['status' => 'approved']);
-        
-        // Redirect kembali ke dashboard admin dengan pesan sukses
-        return redirect()->route('admin.dashboard')->with('success', 'Booking berhasil disetujui.');
+
+        // 2. Kirim notifikasi ke user yang membuat booking
+        $booking->user->notify(new BookingStatusNotification($booking)); // <-- TAMBAHKAN INI
+
+        // 3. Redirect
+        return redirect()->route('admin.dashboard')->with('success', 'Booking berhasil disetujui (Email notifikasi dikirim).');
     }
 
     /**
@@ -42,10 +43,13 @@ class AdminController extends Controller
      */
     public function reject(Booking $booking)
     {
-        // Ganti statusnya menjadi 'rejected'
+        // 1. Ubah status
         $booking->update(['status' => 'rejected']);
 
-        // Redirect kembali ke dashboard admin dengan pesan sukses
-        return redirect()->route('admin.dashboard')->with('success', 'Booking berhasil ditolak.');
+        // 2. Kirim notifikasi ke user yang membuat booking
+        $booking->user->notify(new BookingStatusNotification($booking)); // <-- TAMBAHKAN INI
+
+        // 3. Redirect
+        return redirect()->route('admin.dashboard')->with('success', 'Booking berhasil ditolak (Email notifikasi dikirim).');
     }
 }
