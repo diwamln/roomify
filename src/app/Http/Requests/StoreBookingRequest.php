@@ -2,70 +2,58 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Booking;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Closure; // <-- Pastikan ini ada
+use App\Models\Booking;
 
 class StoreBookingRequest extends FormRequest
 {
-    /**
-     * Tentukan apakah user diizinkan membuat request ini.
-     */
     public function authorize(): bool
     {
         return true; // Izinkan semua user yang login
     }
 
-    /**
-     * Dapatkan aturan validasi.
-     * PASTIKAN SEMUA KEY INI ADA
-     */
     public function rules(): array
     {
+        // Ambil booking ID jika ini proses update (untuk exclude diri sendiri saat cek bentrok)
+        $bookingId = $this->route('booking') ? $this->route('booking')->id : null;
+
         return [
-            // 1. Validasi 'room_id'
-            'room_id' => ['required', 'integer', Rule::exists('rooms', 'id')],
-            
-            // 2. Validasi 'title' (INI YANG HILANG)
-            'title' => ['required', 'string', 'max:255'],
-            
-            // 3. Validasi 'start_time' (INI YANG HILANG)
-            'start_time' => [
+            'room_id' => 'required|exists:rooms,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_time' => 'required|date|after:now',
+            'end_time' => [
                 'required',
-                'date', // 'date' di sini berarti format tanggal/waktu yang valid
-                'after:now', // Waktu mulai harus setelah sekarang
-                
-                // === VALIDASI TABRAKAN JADWAL ===
-                function (string $attribute, mixed $value, Closure $fail) {
-                    $startTime = $this->start_time;
-                    $endTime = $this->end_time;
+                'date',
+                'after:start_time',
+                // Custom Rule: Cek Bentrok
+                function ($attribute, $value, $fail) use ($bookingId) {
+                    $start = $this->start_time;
+                    $end = $value;
+                    $roomId = $this->room_id;
 
-                    // 'start_time' adalah gabungan (YYYY-MM-DD HH:mm)
-                    // 'end_time' juga gabungan (YYYY-MM-DD HH:mm)
-                    if (!$endTime) {
-                        return; // Jika end_time belum diisi, lewati
-                    }
-
-                    // Cek apakah ada booking lain (yang disetujui/pending)
-                    // di ruangan yang sama pada rentang waktu yang tumpang tindih
-                    $isConflict = Booking::where('room_id', $this->room_id)
+                    $isConflict = Booking::where('room_id', $roomId)
                         ->where('status', '!=', 'rejected') // Abaikan yang ditolak
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->where('start_time', '<', $endTime)
-                                  ->where('end_time', '>', $startTime);
+                        ->when($bookingId, function ($q) use ($bookingId) {
+                            $q->where('id', '!=', $bookingId); // Abaikan booking ini sendiri saat edit
+                        })
+                        ->where(function ($query) use ($start, $end) {
+                            // Logika Overlap Waktu
+                            $query->whereBetween('start_time', [$start, $end])
+                                  ->orWhereBetween('end_time', [$start, $end])
+                                  ->orWhere(function ($q) use ($start, $end) {
+                                      $q->where('start_time', '<', $start)
+                                        ->where('end_time', '>', $end);
+                                  });
                         })
                         ->exists();
 
                     if ($isConflict) {
-                        $fail('Jadwal di ruangan ini sudah terisi pada waktu tersebut.');
+                        $fail('Jadwal bentrok! Ruangan ini sudah terisi pada jam tersebut.');
                     }
-                }
-                // === AKHIR VALIDASI TABRAKAN ===
+                },
             ],
-            
-            // 4. Validasi 'end_time' (INI YANG HILANG)
-            'end_time' => ['required', 'date', 'after:start_time'],
         ];
     }
 }

@@ -1,7 +1,5 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
-import lottie from 'lottie-web';
 
 defineProps({
     canLogin: {
@@ -11,88 +9,16 @@ defineProps({
         type: Boolean,
     },
 });
-
-// Refs for Lottie containers
-const mahasiswaLottie = ref(null);
-const dosenLottie = ref(null);
-const adminLottie = ref(null);
-const staffLottie = ref(null);
-
-onMounted(() => {
-    // Load Mahasiswa animation
-    if (mahasiswaLottie.value) {
-        lottie.loadAnimation({
-            container: mahasiswaLottie.value,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: '/images/2-2-2.json'
-        });
-    }
-    
-    // Load Dosen animation
-    if (dosenLottie.value) {
-        lottie.loadAnimation({
-            container: dosenLottie.value,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: '/images/3.json'
-        });
-        const svg = dosenLottie.value.querySelector('svg');
-        if (svg) {
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.maxWidth = '64px';
-            svg.style.maxHeight = '64px';
-        }
-    }
-    
-    // Load Admin animation
-    if (adminLottie.value) {
-        lottie.loadAnimation({
-            container: adminLottie.value,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: '/images/admin.json'
-        });
-        const svg = adminLottie.value.querySelector('svg');
-        if (svg) {
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.maxWidth = '64px';
-            svg.style.maxHeight = '64px';
-        }
-    }
-    
-    // Load Staff animation
-    if (staffLottie.value) {
-        lottie.loadAnimation({
-            container: staffLottie.value,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: '/images/staff.json'
-        });
-        const svg = staffLottie.value.querySelector('svg');
-        if (svg) {
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.maxWidth = '64px';
-            svg.style.maxHeight = '64px';
-        }
-    }
-});
 </script>
 
 <template>
     <Head title="Selamat Datang di Roomify" />
     
     <div class="min-h-screen bg-white">
-        <!-- Navbar - Android Developers Style -->
+        <!-- Navbar (FULL WIDTH) -->
         <nav class="bg-white shadow-sm fixed w-full z-10 top-0 border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Ganti max-w-7xl menjadi w-full -->
+            <div class="w-full px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     
                     <!-- Kiri: Logo + Menu -->
@@ -209,7 +135,8 @@ onMounted(() => {
                     <div class="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl"></div>
                 </div>
 
-                <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 pb-32">
+                <!-- Container Full Width -->
+                <div class="relative w-full px-4 sm:px-6 lg:px-8 py-12 md:py-20 pb-32">
                     <div class="text-center mb-12">
                         <!-- Main Heading -->
                         <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
@@ -226,16 +153,16 @@ onMounted(() => {
                         
                         <!-- Emoji -->
                         <div class="mb-12 flex justify-center">
-                            <img src="/images/1.png" alt="Kampus" class="w-32 h-32  " />
+                            <img src="/images/1.png" alt="Kampus" class="w-32 h-32" />
                         </div>
                     </div>
 
-                    <!-- Category Cards Grid with Lottie -->
-                    <<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 max-w-4xl mx-auto">
+                    <!-- Category Cards Grid with Images -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 max-w-4xl mx-auto">
                         <!-- Mahasiswa -->
                         <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
                             <div class="mb-3 h-16 flex items-center justify-center">
-                                <div ref="mahasiswaLottie" class="w-16 h-16"></div>
+                                <img src="/images/students.png" alt="Mahasiswa" class="w-16 h-16 object-contain" />
                             </div>
                             <p class="text-sm font-medium">Mahasiswa</p>
                             <p class="text-xs text-indigo-300 mt-1">Booking ruangan untuk kegiatan</p>
@@ -244,7 +171,7 @@ onMounted(() => {
                         <!-- Dosen -->
                         <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
                             <div class="mb-3 h-16 flex items-center justify-center">
-                                <div ref="dosenLottie" class="w-16 h-16"></div>
+                                <img src="/images/teacher.png" alt="Dosen" class="w-16 h-16 object-contain" />
                             </div>
                             <p class="text-sm font-medium">Dosen</p>
                             <p class="text-xs text-indigo-300 mt-1">Pesan lab & ruang kelas</p>
@@ -253,7 +180,7 @@ onMounted(() => {
                         <!-- Admin -->
                         <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
                             <div class="mb-3 h-16 flex items-center justify-center">
-                                <div ref="adminLottie" class="w-16 h-16"></div>
+                                <img src="/images/admin.png" alt="Admin" class="w-16 h-16 object-contain" />
                             </div>
                             <p class="text-sm font-medium">Admin</p>
                             <p class="text-xs text-indigo-300 mt-1">Kelola & setujui booking</p>
@@ -262,7 +189,7 @@ onMounted(() => {
                         <!-- Staff -->
                         <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
                             <div class="mb-3 h-16 flex items-center justify-center">
-                                <div ref="staffLottie" class="w-16 h-16"></div>
+                                <img src="/images/team.png" alt="Staff" class="w-16 h-16 object-contain" />
                             </div>
                             <p class="text-sm font-medium">Staff</p>
                             <p class="text-xs text-indigo-300 mt-1">Manajemen ruangan</p>
@@ -277,7 +204,6 @@ onMounted(() => {
                         >
                             Mulai Booking Sekarang →
                         </Link>
-
                     </div>
                 </div>
 
@@ -290,9 +216,9 @@ onMounted(() => {
             </section>
 
             <!-- Featured Section -->
-            <!-- Featured Section -->
             <section class="py-20 bg-white">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Container Full Width -->
+                <div class="w-full px-4 sm:px-6 lg:px-8">
                     <div class="grid md:grid-cols-2 gap-8">
                         <!-- Card 1 -->
                         <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-3xl p-8 shadow-lg hover:shadow-xl transition duration-300 flex flex-col">
@@ -360,8 +286,8 @@ onMounted(() => {
 
         <!-- Footer -->
         <footer class="bg-white border-t border-gray-200">
-            <!-- Social Media Section -->
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Social Media Section (FULL WIDTH) -->
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                     <!-- Instagram -->
                     <div class="flex flex-col items-center">
@@ -398,9 +324,9 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Footer Links -->
+            <!-- Footer Links (FULL WIDTH) -->
             <div class="border-t border-gray-200">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
                         <!-- Tentang Roomify -->
                         <div>
@@ -460,9 +386,9 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Bottom Footer -->
+            <!-- Bottom Footer (FULL WIDTH) -->
             <div class="border-t border-gray-200 bg-gray-50">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
                     <div class="flex flex-col md:flex-row justify-between items-center">
                         <!-- Left: Logo & Copyright -->
                         <div class="flex items-center mb-4 md:mb-0">

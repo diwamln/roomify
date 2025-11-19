@@ -2,49 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Booking; // <-- Pastikan import Booking
+use App\Models\Booking;
 use Illuminate\Http\Request;
-use Inertia\Inertia; // <-- Pastikan import Inertia
+use Inertia\Inertia;
+use Carbon\Carbon;
 
 class CalendarController extends Controller
 {
-    /**
-     * Menampilkan halaman kalender dengan data booking.
-     */
     public function index()
     {
         // 1. Ambil semua booking yang 'pending' atau 'approved'
-        // Kita tidak perlu menampilkan yang 'rejected'
-        $bookings = Booking::whereIn('status', ['approved', 'pending'])
-            ->with('room', 'user') // Ambil relasi agar kita dapat nama
+        $bookings = Booking::with(['room', 'user'])
+            ->whereIn('status', ['approved', 'pending'])
             ->get();
 
-        // 2. Ubah data booking menjadi format 'Event' FullCalendar
+        // 2. Format data sesuai standar FullCalendar
         $events = $bookings->map(function ($booking) {
             
-            // Tentukan warna berdasarkan status
-            $color = $booking->status === 'approved' ? '#10B981' : '#F59E0B'; // Hijau (Approved) / Kuning (Pending)
+            // Hijau (#10B981) untuk Approved, Kuning (#F59E0B) untuk Pending
+            $color = $booking->status === 'approved' ? '#10B981' : '#F59E0B';
 
-            // Buat judul event
-            $title = $booking->room->name . ' - ' . $booking->title;
-            
             return [
                 'id' => $booking->id,
-                'title' => $title,
-                'start' => $booking->start_time->toIso8601String(), // Format standar
-                'end' => $booking->end_time->toIso8601String(),   // Format standar
-                'color' => $color,
+                'title' => $booking->room->name . ' - ' . $booking->title,
+                'start' => $booking->start_time,
+                'end' => $booking->end_time,
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'textColor' => '#ffffff',
+                
+                // Data tambahan untuk Modal Detail
                 'extendedProps' => [
                     'status' => $booking->status,
-                    'user' => $booking->user->name,
+                    'organizer' => $booking->user->name,
+                    'room' => $booking->room->name,
+                    'description' => $booking->description ?? '-',
+                    'time_desc' => Carbon::parse($booking->start_time)->format('H:i') . ' - ' . Carbon::parse($booking->end_time)->format('H:i'),
                 ]
             ];
         });
 
-        // 3. Render halaman Inertia dan kirim 'events' sebagai prop
+        // 3. Render ke 'Calendar/Index' (Sesuai struktur folder Anda)
         return Inertia::render('Calendar/Index', [
-            'events' => $events,
+            'events' => $events
         ]);
     }
 }

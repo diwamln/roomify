@@ -1,26 +1,30 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 const showingNavigationDropdown = ref(false);
 
+// Ambil data Page & Role User
 const page = usePage();
 const userRole = computed(() => page.props.auth.user.role);
-
 </script>
 
 <template>
     <div>
         <div class="min-h-screen bg-gray-100">
-            <nav class="bg-white border-b border-gray-100">
-                <!-- Primary Navigation Menu -->
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- ============================================ -->
+            <!-- NAVBAR UTAMA (FULL WIDTH)                    -->
+            <!-- ============================================ -->
+            <nav class="bg-white border-b border-gray-100 w-full">
+                
+                <!-- Ganti max-w-7xl menjadi w-full agar lebar penuh -->
+                <div class="w-full px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
                         <div class="flex">
                             <!-- Logo -->
@@ -30,20 +34,18 @@ const userRole = computed(() => page.props.auth.user.role);
                                 </Link>
                             </div>
 
-                            <!-- Navigation Links -->
+                            <!-- Navigation Links (DESKTOP) -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
 
-                                <!-- === LOGIKA ROLE === -->
-                                <!-- === LINK KALENDER BARU === -->
+                                <!-- === LINK KALENDER (BARU) === -->
                                 <NavLink :href="route('calendar.index')" :active="route().current('calendar.index')">
                                     Kalender
                                 </NavLink>
-                                <!-- === SELESAI LINK BARU === -->
-                                
-                                <!-- TAMPILKAN HANYA JIKA ADMIN -->
+
+                                <!-- === LOGIKA ADMIN === -->
                                 <NavLink 
                                     v-if="userRole === 'admin'" 
                                     :href="route('rooms.index')" 
@@ -58,19 +60,18 @@ const userRole = computed(() => page.props.auth.user.role);
                                     Manajemen Booking
                                 </NavLink>
 
-                                <!-- TAMPILKAN HANYA JIKA BUKAN ADMIN -->
+                                <!-- === LOGIKA USER BIASA === -->
                                 <NavLink 
                                     v-if="userRole !== 'admin'" 
                                     :href="route('bookings.index')" 
                                     :active="route().current('bookings.index') || route().current('bookings.create')">
                                     Booking Saya
                                 </NavLink>
-                                <!-- === AKHIR LOGIKA ROLE === -->
                             </div>
                         </div>
 
+                        <!-- Settings Dropdown (DESKTOP) -->
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
-                            <!-- Settings Dropdown -->
                             <div class="ms-3 relative">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
@@ -107,7 +108,7 @@ const userRole = computed(() => page.props.auth.user.role);
                             </div>
                         </div>
 
-                        <!-- Hamburger -->
+                        <!-- Hamburger (MOBILE BUTTON) -->
                         <div class="-me-2 flex items-center sm:hidden">
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"
@@ -140,7 +141,7 @@ const userRole = computed(() => page.props.auth.user.role);
                     </div>
                 </div>
 
-                <!-- Responsive Navigation Menu -->
+                <!-- Responsive Navigation Menu (MOBILE LIST) -->
                 <div
                     :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }"
                     class="sm:hidden"
@@ -149,8 +150,13 @@ const userRole = computed(() => page.props.auth.user.role);
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
+
+                        <!-- Link Kalender Mobile -->
+                        <ResponsiveNavLink :href="route('calendar.index')" :active="route().current('calendar.index')">
+                            Kalender
+                        </ResponsiveNavLink>
                         
-                        <!-- === LOGIKA ROLE RESPONSIVE === -->
+                        <!-- Logic Admin Mobile -->
                         <ResponsiveNavLink 
                             v-if="userRole === 'admin'" 
                             :href="route('rooms.index')" 
@@ -165,13 +171,13 @@ const userRole = computed(() => page.props.auth.user.role);
                             Manajemen Booking
                         </ResponsiveNavLink>
 
+                        <!-- Logic User Mobile -->
                         <ResponsiveNavLink 
                             v-if="userRole !== 'admin'" 
                             :href="route('bookings.index')" 
                             :active="route().current('bookings.index') || route().current('bookings.create')">
                             Booking Saya
                         </ResponsiveNavLink>
-                        <!-- === AKHIR LOGIKA ROLE RESPONSIVE === -->
                     </div>
 
                     <!-- Responsive Settings Options -->
@@ -193,15 +199,16 @@ const userRole = computed(() => page.props.auth.user.role);
                 </div>
             </nav>
 
-            <!-- Page Heading -->
+            <!-- Page Heading (FULL WIDTH) -->
             <header class="bg-white shadow" v-if="$slots.header">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <!-- Ganti max-w-7xl menjadi w-full -->
+                <div class="w-full py-6 px-4 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
             </header>
 
-            <!-- Page Content -->
-            <main>
+            <!-- Page Content (FULL WIDTH) -->
+            <main class="w-full">
                 <slot />
             </main>
         </div>

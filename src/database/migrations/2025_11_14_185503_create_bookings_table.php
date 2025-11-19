@@ -21,6 +21,7 @@ return new class extends Migration
             // 1. Menambahkan 'title' untuk nama kegiatan (Rapat HIMA, Kelas Tambahan, dll)
             //    Model dan Controller kita sudah mengasumsikan ini ada.
             $table->string('title');
+            $table->text('description')->nullable();
 
             // 2. Mengganti 'tanggal', 'jam_mulai', 'jam_selesai'
             //    dengan 'start_time' dan 'end_time' (tipe DATETIME).

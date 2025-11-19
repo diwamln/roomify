@@ -2,9 +2,8 @@
 
 namespace App\Mail;
 
-use App\Models\Booking; // Import Booking
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -17,50 +16,40 @@ class BookingNotification extends Mailable
     public $booking;
     public $status; // 'approved' atau 'rejected'
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(Booking $booking, string $status)
     {
         $this->booking = $booking;
         $this->status = $status;
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
-        // Buat subject email dinamis
         $subject = $this->status === 'approved' 
-            ? 'Booking Ruangan Anda Telah Disetujui' 
-            : 'Booking Ruangan Anda Ditolak';
+            ? 'Booking Disetujui: ' . $this->booking->title
+            : 'Booking Ditolak: ' . $this->booking->title;
 
         return new Envelope(
-            subject: $subject,
+            subject: '[Roomify] ' . $subject,
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
-        // Arahkan ke satu template Blade
+        // Kita gunakan view inline agar tidak perlu buat file blade terpisah dulu
         return new Content(
-            view: 'emails.bookings.index', // Path ke template gabungan
-            with: [
-                'booking' => $this->booking,
-                'status' => $this->status, // Kirim status ke Blade
-            ],
+            htmlString: "
+                <h1>Halo, {$this->booking->user->name}</h1>
+                <p>Status pengajuan booking ruangan Anda telah diperbarui.</p>
+                
+                <p><strong>Kegiatan:</strong> {$this->booking->title}</p>
+                <p><strong>Ruangan:</strong> {$this->booking->room->name}</p>
+                <p><strong>Waktu:</strong> {$this->booking->start_time->format('d M Y H:i')}</p>
+                
+                <p>Status saat ini: <strong style='color: ".($this->status == 'approved' ? 'green' : 'red')."'>".strtoupper($this->status)."</strong></p>
+                
+                <br>
+                <p>Terima kasih,<br>Admin Roomify</p>
+            "
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }
