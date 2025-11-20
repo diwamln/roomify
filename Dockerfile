@@ -86,4 +86,6 @@ RUN php artisan optimize:clear
 
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# >>> PERUBAHAN SEMENTARA UNTUK SETUP DATABASE:
+# Jalankan migrasi, storage link, dan seeder, lalu keluar (exit)
+CMD php artisan migrate --force && php artisan storage:link && php artisan db:seed --force && exit
