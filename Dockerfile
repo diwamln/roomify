@@ -1,65 +1,89 @@
-# --- STEP 1: Build Frontend (Vue/Inertia) ---
-FROM node:20 as frontend
+# --- TAHAP 1: Install Vendor PHP (Composer) ---
+FROM composer:2 AS vendor-build
 WORKDIR /app
 
-# 1. Ambil package.json dari dalam folder src
-COPY src/package*.json ./
+COPY src/composer.json src/composer.lock ./src/
+RUN composer install \
+    --working-dir=./src \
+    --no-dev \
+    --ignore-platform-reqs \
+    --no-scripts \
+    --prefer-dist
 
-# 2. Install dependencies node
-RUN npm install
 
-# 3. Copy seluruh isi folder src ke dalam container build
-COPY src/ . 
+# --- TAHAP 2: Build Frontend (Vue/Inertia) ---
+FROM node:20 AS frontend
+WORKDIR /app
 
-# 4. Build aset
-RUN npm run build
+COPY src/ ./src/
+COPY --from=vendor-build /app/src/vendor ./src/vendor
 
-# --- STEP 2: Setup Production Server ---
+RUN npm install --prefix ./src
+RUN npm run build --prefix ./src
+
+
+# --- TAHAP 3: Setup Production Server (Final) ---
 FROM php:8.2-fpm
 
-# Install Nginx & Supervisor
 RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
     libpq-dev \
-    zip \
-    unzip \
-    git \
-    curl
+    zip unzip git curl
 
-# Install PHP Ext
 RUN docker-php-ext-install pdo pdo_pgsql opcache
-
-# Install Redis (Opsional)
 RUN pecl install redis && docker-php-ext-enable redis
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# --- PERBAIKAN BAGIAN CONFIG ---
-# Asumsinya file nginx-deploy.conf & supervisord.conf ada di ROOT (bukan di dalam src)
+# Nginx & Supervisor config
 RUN rm /etc/nginx/sites-enabled/default
 COPY nginx-deploy.conf /etc/nginx/sites-enabled/default
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Setup Working Directory
+
+# ==========================================
+# FIX PENTING SAAT BUILD (biar tidak connect Redis/DB)
+# ==========================================
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+
+ENV CACHE_DRIVER=array
+ENV CACHE_STORE=array
+ENV CACHE_DEFAULT=array
+
+ENV SESSION_DRIVER=array
+ENV QUEUE_CONNECTION=sync
+
+
 WORKDIR /var/www/html
 
-# --- PERBAIKAN KRUSIAL DISINI ---
-# JANGAN 'COPY . .' (nanti folder src ikut masuk)
-# TAPI 'COPY src/ .' (ambil ISI folder src, taruh di root www)
+# Copy source code (termasuk .env kalau ada)
 COPY src/ .
 
-# Copy hasil build frontend
-COPY --from=frontend /app/public/build public/build
+# HAPUS .env AGAR BUILD TIDAK TERGANGGU CONFIG NYATA
+RUN rm -f .env
 
-# Install Laravel Dependencies
-# (Sekarang aman karena composer.json sudah tercopy ke /var/www/html berkat perintah di atas)
-RUN composer install --no-dev --optimize-autoloader
+# Copy vendor & frontend build
+COPY --from=vendor-build /app/src/vendor ./vendor
+COPY --from=frontend /app/src/public/build ./public/build
 
-# Permission
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Clean old caches
+RUN rm -f bootstrap/cache/packages.php \
+    && rm -f bootstrap/cache/services.php
+
+# Set permission
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+
+# ==========================================
+# BUILD ARTISAN CACHE (DIJAMIN TANPA ERROR)
+# ==========================================
+RUN php artisan config:clear \
+    && php artisan optimize:clear \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
 
 EXPOSE 80
 
