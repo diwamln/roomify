@@ -58,6 +58,9 @@ WORKDIR /var/www/html
 
 # Copy source code (termasuk .env kalau ada)
 COPY src/ .
+# Render will inject env vars → write them for Laravel
+RUN printenv | grep -E 'APP_|DB_|CACHE_|SESSION_' > /var/www/html/.env || true
+
 
 # HAPUS .env AGAR BUILD TIDAK TERGANGGU CONFIG NYATA
 RUN rm -f .env
@@ -78,11 +81,7 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 # ==========================================
 # BUILD ARTISAN CACHE (DIJAMIN TANPA ERROR)
 # ==========================================
-RUN php artisan config:clear \
-    && php artisan optimize:clear \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+RUN php artisan optimize:clear
 
 
 EXPOSE 80
