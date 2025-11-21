@@ -8,6 +8,7 @@ use App\Models\Booking;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Faker\Factory as Faker; // Ini tetap diperlukan
 
 class DatabaseSeeder extends Seeder
 {
