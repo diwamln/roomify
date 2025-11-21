@@ -8,7 +8,7 @@ use App\Models\Booking;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-use Faker\Factory as Faker; // 🔥 WAJIB: Import Faker Factory
+use Faker\Factory as Faker; // Ini tetap diperlukan
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. INISIALISASI FAKER LOKAL (untuk data dummy)
-        $faker = \Faker\Factory::create('id_ID');
-
+        // 1. INISIALISASI FAKER LOKAL (Gunakan Full Namespace)
+        $faker = \Faker\Factory::create('id_ID'); // 🔥 FIX FINAL DI SINI
+        
         // ==========================================
         // 2. BUAT USER INTI (Admin & Mahasiswa)
         // ==========================================
@@ -38,8 +38,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'user',
         ]);
-
-        // 🔥 Catatan: User::factory(5)->create() dihilangkan karena memicu error.
 
         // ==========================================
         // 3. BUAT DATA RUANGAN (Rooms)
@@ -123,8 +121,9 @@ class DatabaseSeeder extends Seeder
             Booking::create([
                 'user_id' => $users->random()->id,
                 'room_id' => $rooms->random()->id,
-                'title' => 'Kegiatan ' . $faker->words(2, true), // Menggunakan $faker
-                'description' => $faker->sentence(), // Menggunakan $faker
+                // Menggunakan $faker yang sudah diinisialisasi
+                'title' => 'Kegiatan ' . $faker->words(2, true), 
+                'description' => $faker->sentence(), 
                 'start_time' => $start,
                 'end_time' => $end,
                 'status' => $statuses[array_rand($statuses)],
@@ -137,7 +136,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => $student->id,
             'room_id' => $rooms->random()->id, 
             'title' => 'Presentasi Project Akhir',
-            'description' => 'Sidang skripsi tahap 1',
+            'description' => $faker->sentence(), // Menggunakan $faker
             'start_time' => now()->addDays(2)->setHour(10)->setMinute(0),
             'end_time' => now()->addDays(2)->setHour(12)->setMinute(0),
             'status' => 'approved',
