@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. INISIALISASI FAKER LOKAL (untuk data dummy)
-        $faker = Faker::create('id_ID');
+        $faker = \Faker\Factory::create('id_ID');
 
         // ==========================================
         // 2. BUAT USER INTI (Admin & Mahasiswa)
