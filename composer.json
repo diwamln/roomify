@@ -1,6 +1,7 @@
 {
     "require": {
         "laravel/breeze": "^2.3",
-        "tightenco/ziggy": "^2.6"
+        "tightenco/ziggy": "^2.6",
+        "fakerphp/faker": "^1.24"
     }
 }
