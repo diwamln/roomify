@@ -22,6 +22,43 @@ const currentYear = ref(date.getFullYear());
 const todayDate = date.getDate();
 const todayMonth = date.getMonth();
 const todayYear = date.getFullYear();
+const selectedDate = ref(null)
+const currentDate = ref(new Date());
+const calendarRef = ref(null)
+
+
+
+function selectDate(day) {
+    console.log('hari', day)
+    if (day.type !== 'current') return;
+
+    selectedDate.value = day.fullDate;
+    console.log(currentDate)
+
+    // Set tanggal baru ke FullCalendar
+    currentDate.value = new Date(day.fullDate);
+    console.log(currentDate)
+
+    // Update FullCalendar
+    updateCalendar();
+}
+
+
+// function updateCalendar() {
+//     calendarOptions.value = {
+//         ...calendarOptions.value,
+//         initialDate: currentDate.value
+//     };
+// }
+
+function updateCalendar() {
+  const calendarApi = calendarRef.value?.getApi();
+  if (calendarApi) {
+    calendarApi.gotoDate(currentDate.value);
+  }
+}
+
+
 
 const monthNames = [
     "January", "February", "March", "April", "May", "June", 
@@ -42,10 +79,25 @@ const calendarDays = computed(() => {
         days.push({ date: daysInPrevMonth - i + 1, type: 'prev' });
     }
 
+    // for (let i = 1; i <= daysInMonth; i++) {
+    //     const isToday = i === todayDate && currentMonth.value === todayMonth && currentYear.value === todayYear;
+    //     days.push({ date: i, type: 'current', isToday });
+    // }
+
     for (let i = 1; i <= daysInMonth; i++) {
-        const isToday = i === todayDate && currentMonth.value === todayMonth && currentYear.value === todayYear;
-        days.push({ date: i, type: 'current', isToday });
-    }
+    const isToday =
+      i === todayDate &&
+      currentMonth.value === todayMonth &&
+      currentYear.value === todayYear;
+
+    days.push({
+        date: i,
+        type: 'current',
+        isToday,
+        fullDate: `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`
+    });
+}
+
 
     const remainingCells = 42 - days.length;
     for (let i = 1; i <= remainingCells; i++) {
@@ -99,6 +151,9 @@ const closeModal = () => {
 // ==========================================
 const calendarOptions = ref({
   plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ],
+    ////////////
+  initialDate: currentDate.value,
+
   initialView: 'timeGridWeek',
   
   headerToolbar: {
@@ -369,6 +424,7 @@ const calendarOptions = ref({
                             'hover:bg-gray-200': !day.isToday && day.type === 'current',
                             'text-gray-700 font-medium': day.type === 'current' && !day.isToday
                         }"
+                         @click="selectDate(day)"
                     >
                         {{ day.date }}
                     </span>
@@ -394,7 +450,9 @@ const calendarOptions = ref({
           <!-- MAIN CALENDAR -->
           <div class="flex-1 bg-white overflow-hidden">
               <div class="h-full p-6"> 
-                  <FullCalendar :options="calendarOptions" class="h-full w-full" />
+                  <!-- <FullCalendar :options="calendarOptions" class="h-full w-full" /> -->
+                   <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full w-full" />
+
               </div>
           </div>
 
