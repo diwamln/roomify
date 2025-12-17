@@ -1,20 +1,24 @@
-# --- STAGE 1: Build Dependencies (Composer) ---
+# --- STAGE 1: Build PHP Dependencies (Composer) ---
 FROM composer:2 AS deps
-
 WORKDIR /app
-
-# Copy hanya file composer dulu untuk memanfaatkan caching layer Docker
+# Copy file composer saja dulu untuk caching
 COPY src/composer.json src/composer.lock ./
-
-# Install dependensi (tanpa dev tools, optimize classmap)
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --prefer-dist
 
-# --- STAGE 2: Runtime (PHP-FPM) ---
+# --- STAGE 2: Build Frontend Assets (Node.js) ---
+# KITA TAMBAHKAN STAGE INI
+FROM node:20-alpine AS node_build
+WORKDIR /app
+# Copy seluruh source code (karena butuh vite.config.js, resources/, package.json)
+COPY src .
+# Install dependensi node & build assets
+RUN npm ci
+RUN npm run build
+
+# --- STAGE 3: Runtime (PHP-FPM) ---
 FROM php:8.4-fpm-alpine
 
-# Install library sistem yang dibutuhkan
-# libpq-dev: untuk driver postgresql
-# libzip-dev: untuk ekstensi zip
+# Install library sistem
 RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev \
@@ -23,32 +27,27 @@ RUN apk add --no-cache \
     bash
 
 # Install Ekstensi PHP
-# pdo_pgsql: wajib untuk Laravel + Postgres
-# opcache: wajib untuk performa production
-# pcntl: berguna jika nanti pakai queue worker
 RUN docker-php-ext-install pdo pdo_pgsql zip opcache pcntl
 
-# Konfigurasi PHP-FPM agar listen di semua interface (penting untuk Kubernetes)
+# Konfigurasi PHP-FPM
 RUN sed -i 's|listen = 127.0.0.1:9000|listen = 9000|' /usr/local/etc/php-fpm.d/www.conf
 
-# Setup working directory
 WORKDIR /var/www/html
 
-# Copy folder vendor dari stage 1
+# 1. Copy Vendor dari Stage 1
 COPY --from=deps /app/vendor ./vendor
 
-# Copy seluruh source code aplikasi
+# 2. Copy Source Code Aplikasi
 COPY src .
 
-# Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# 3. Copy Hasil Build Frontend dari Stage 2 (PENTING!)
+# Ini yang akan memperbaiki error Vite manifest not found
+COPY --from=node_build /app/public/build ./public/build
 
-# Pastikan entrypoint bisa dieksekusi (antisipasi jika permission dari git salah)
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Expose port 9000 (default PHP-FPM)
 EXPOSE 9000
-
-# Set entrypoint dan command default
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
