@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // PERBAIKAN: Ganti 'https' menjadi 'http'
         // Kita paksa HTTP agar cocok dengan URL akses Anda (http://localhost:30080)
         if (config('app.env') === 'production') {
-            URL::forceScheme('http');
+            URL::forceScheme('https');
         }
 
         // Optional: For Breeze asset optimization
