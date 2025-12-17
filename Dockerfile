@@ -1,16 +1,20 @@
 # --- STAGE 1: Build PHP Dependencies (Composer) ---
 FROM composer:2 AS deps
 WORKDIR /app
-# Copy file composer saja dulu untuk caching
 COPY src/composer.json src/composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --prefer-dist
 
 # --- STAGE 2: Build Frontend Assets (Node.js) ---
-# KITA TAMBAHKAN STAGE INI
 FROM node:20-alpine AS node_build
 WORKDIR /app
-# Copy seluruh source code (karena butuh vite.config.js, resources/, package.json)
+# Copy source code
 COPY src .
+
+# ### PERBAIKAN DISINI ###
+# Kita butuh folder vendor agar Ziggy bisa ditemukan oleh Vite
+COPY --from=deps /app/vendor ./vendor
+# ######################
+
 # Install dependensi node & build assets
 RUN npm ci
 RUN npm run build
@@ -19,12 +23,7 @@ RUN npm run build
 FROM php:8.4-fpm-alpine
 
 # Install library sistem
-RUN apk add --no-cache \
-    postgresql-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    bash
+RUN apk add --no-cache postgresql-dev libzip-dev zip unzip bash
 
 # Install Ekstensi PHP
 RUN docker-php-ext-install pdo pdo_pgsql zip opcache pcntl
@@ -40,8 +39,7 @@ COPY --from=deps /app/vendor ./vendor
 # 2. Copy Source Code Aplikasi
 COPY src .
 
-# 3. Copy Hasil Build Frontend dari Stage 2 (PENTING!)
-# Ini yang akan memperbaiki error Vite manifest not found
+# 3. Copy Hasil Build Frontend dari Stage 2
 COPY --from=node_build /app/public/build ./public/build
 
 # Copy entrypoint
