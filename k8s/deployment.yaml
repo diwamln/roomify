@@ -15,7 +15,7 @@ spec:
       containers:
         # --- APP CONTAINER (PHP) ---
         - name: php-backend
-          image: username-dockerhub/roomify:latest # Akan diganti Jenkins
+          image: diwamln/roomify:latest # Akan diganti Jenkins
           imagePullPolicy: Always
           ports:
             - containerPort: 9000

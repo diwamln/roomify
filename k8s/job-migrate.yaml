@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
         - name: migration
-          image: username-dockerhub/roomify:latest # Image yang sama dengan App
+          image: diwamln/roomify:latest # Image yang sama dengan App
           imagePullPolicy: Always
           command: ["php", "artisan", "migrate", "--force"]
           envFrom:
