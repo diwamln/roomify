@@ -1,54 +1,23 @@
 services:
   app:
-    build:
-      context: ./docker/php
-    container_name: laravel_app
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./src:/var/www/html
+    build: .
+    container_name: roomify-app
+    env_file:
+      - src/.env
+    # tidak ada volumes yang menimpa /var/www/html
     networks:
-      - laravel-net
-    depends_on:
-      - postgres
-      - redis
+      - roomify
 
   nginx:
     image: nginx:alpine
-    container_name: laravel_nginx
     ports:
       - "8000:80"
     volumes:
-      - ./src:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - laravel-net
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
-
-  postgres:
-    image: postgres:15
-    container_name: laravel_postgres
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "5433:5432"   # <- agar tidak bentrok dengan postgres lokal
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     networks:
-      - laravel-net
-
-  redis:
-    image: redis:alpine
-    container_name: laravel_redis
-    ports:
-      - "6379:6379"
-    networks:
-      - laravel-net
+      - roomify
 
 networks:
-  laravel-net:
-
-volumes:
-  pgdata:
+  roomify:

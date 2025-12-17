@@ -9,9 +9,34 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 // use App\Mail\BookingNotification; // Uncomment jika file Mail sudah ada
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
+
+
 
 class BookingController extends Controller
 {
+    // export pdf
+
+    public function exportPDF($id)
+    {
+        $booking = Booking::with('room')->findOrFail($id);
+
+        if ($booking->status !== 'approved') {
+            abort(403, 'Booking belum disetujui dan tidak dapat dicetak.');
+        }
+
+        $pdf = Pdf::loadView('pdf.booking-surat', [
+            'booking' => $booking
+        ])->setPaper('A4');
+
+        $filename = 'Surat-Peminjaman-' . $booking->id . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+
     /**
      * ===============================================
      * METHOD UNTUK USER BIASA (Mahasiswa/Dosen)
@@ -30,11 +55,11 @@ class BookingController extends Controller
         // Logika Pencarian
         if ($request->input('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('room', function($r) use ($search) {
-                      $r->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('room', function ($r) use ($search) {
+                        $r->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -66,8 +91,8 @@ class BookingController extends Controller
             'description' => 'nullable|string',
             'start_time' => 'required|date|after:now',
             'end_time' => [
-                'required', 
-                'date', 
+                'required',
+                'date',
                 'after:start_time',
                 // LOGIC ANTI BENTROK (Saat Create)
                 function ($attribute, $value, $fail) use ($request) {
@@ -76,7 +101,7 @@ class BookingController extends Controller
                         ->where(function ($query) use ($request) {
                             $query->where(function ($q) use ($request) {
                                 $q->where('start_time', '<', $request->end_time)
-                                  ->where('end_time', '>', $request->start_time);
+                                    ->where('end_time', '>', $request->start_time);
                             });
                         })
                         ->exists();
@@ -137,8 +162,8 @@ class BookingController extends Controller
             'description' => 'nullable|string',
             'start_time' => 'required|date|after:now',
             'end_time' => [
-                'required', 
-                'date', 
+                'required',
+                'date',
                 'after:start_time',
                 // LOGIC ANTI BENTROK (Saat Update)
                 function ($attribute, $value, $fail) use ($request, $booking) {
@@ -148,7 +173,7 @@ class BookingController extends Controller
                         ->where(function ($query) use ($request) {
                             $query->where(function ($q) use ($request) {
                                 $q->where('start_time', '<', $request->end_time)
-                                  ->where('end_time', '>', $request->start_time);
+                                    ->where('end_time', '>', $request->start_time);
                             });
                         })
                         ->exists();
@@ -178,7 +203,7 @@ class BookingController extends Controller
 
         // Hanya bisa hapus jika pending (opsional, tergantung kebijakan)
         if ($booking->status !== 'pending' && auth()->user()->role !== 'admin') {
-             return back()->with('error', 'Hanya booking pending yang bisa dibatalkan.');
+            return back()->with('error', 'Hanya booking pending yang bisa dibatalkan.');
         }
 
         $booking->delete();
@@ -203,14 +228,14 @@ class BookingController extends Controller
         // Fitur Pencarian Admin (Cari Nama User, Room, atau Judul)
         if ($request->input('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($u) use ($search) {
-                      $u->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('room', function($r) use ($search) {
-                      $r->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('room', function ($r) use ($search) {
+                        $r->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -231,7 +256,7 @@ class BookingController extends Controller
     public function approve(Booking $booking)
     {
         $booking->update(['status' => 'approved']);
-        
+
         // Kirim Email Notifikasi (Pastikan Mailtrap/SMTP sudah disetting di .env)
         // if ($booking->user && $booking->user->email) {
         //    Mail::to($booking->user->email)->send(new \App\Mail\BookingNotification($booking, 'approved'));
@@ -246,7 +271,7 @@ class BookingController extends Controller
     public function reject(Booking $booking)
     {
         $booking->update(['status' => 'rejected']);
-        
+
         // Kirim Email Notifikasi
         // if ($booking->user && $booking->user->email) {
         //    Mail::to($booking->user->email)->send(new \App\Mail\BookingNotification($booking, 'rejected'));

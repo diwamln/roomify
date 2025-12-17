@@ -7,6 +7,13 @@ import Swal from 'sweetalert2';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue';
 
+
+// export PDF jir
+const exportPDF = (id) => {
+    window.open(route('bookings.export.pdf', id), '_blank');
+};
+
+
 // Props dari Controller
 const props = defineProps({
   bookings: Object, // SEKARANG OBJECT (karena Paginator), bukan Array
@@ -262,9 +269,32 @@ const formatDate = (dateString) => {
                          <p class="text-red-800 text-sm">{{ selectedBooking.admin_notes }}</p>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <!-- <div class="bg-gray-50 px-6 py-4 flex justify-end">
                     <button @click="closeModal" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-900 hover:bg-indigo-200 focus:outline-none transition">Tutup</button>
+                </div> -->
+
+                <div class="bg-gray-50 px-6 py-4 flex justify-between">
+    
+                    <!-- Tombol Export PDF -->
+                    <button
+                        v-if="selectedBooking && selectedBooking.status === 'approved'"
+                        @click="exportPDF(selectedBooking.id)"
+                        class="inline-flex items-center gap-2 rounded-md bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700 transition"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Export PDF
+                    </button>
+
+                    <!-- Tombol Tutup -->
+                    <button @click="closeModal" 
+                        class="inline-flex justify-center rounded-md border border-transparent bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-900 hover:bg-indigo-200 focus:outline-none transition">
+                        Tutup
+                    </button>
+
                 </div>
+
 
               </DialogPanel>
             </TransitionChild>

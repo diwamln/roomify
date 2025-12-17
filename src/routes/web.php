@@ -17,6 +17,10 @@ use Inertia\Inertia;
 | Web Routes
 |--------------------------------------------------------------------------
 */
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
+
 
 // --- HALAMAN DEPAN (WELCOME) ---
 Route::get('/', function () {
@@ -27,6 +31,11 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// export pdf
+Route::get('/bookings/{id}/export-pdf', [BookingController::class, 'exportPDF'])
+    ->name('bookings.export.pdf');
+
 
 // --- DASHBOARD (LOGIC PUSAT UNTUK ADMIN & USER) ---
 Route::get('/dashboard', function () {
@@ -139,7 +148,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // Booking Routes (User Biasa)
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
@@ -155,10 +164,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // --- GRUP ROUTE KHUSUS ADMIN ---
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-    
+
     // Manajemen Ruangan (CRUD Lengkap kecuali show)
     Route::resource('rooms', RoomController::class)->except(['show']);
-    
+
     // Manajemen Booking (Approval)
     // Pastikan method 'adminIndex' ada di BookingController, atau gunakan Controller terpisah
     Route::get('/admin/bookings', [BookingController::class, 'adminIndex'])->name('admin.bookings.index');
@@ -173,9 +182,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
             'Content-Disposition' => "attachment; filename=\"$fileName\"",
         ];
 
-        $callback = function() {
+        $callback = function () {
             $file = fopen('php://output', 'w');
-            
+
             // Header Kolom CSV
             fputcsv($file, ['ID', 'User', 'Room', 'Title', 'Date', 'Start Time', 'End Time', 'Status']);
 
@@ -220,4 +229,4 @@ Route::get('/debug', function () {
 });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

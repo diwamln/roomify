@@ -1,2 +1,7 @@
-vendor/
-node_modules/
+.git
+node_modules
+src/node_modules
+src/storage/logs
+src/.env
+
+src/vendor

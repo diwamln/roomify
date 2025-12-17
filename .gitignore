@@ -2,6 +2,8 @@
 # dependencies
 node_modules/
 vendor/
+src/node_modules/
+stc/vendor/
 # docker
 *.sock
 *.pid

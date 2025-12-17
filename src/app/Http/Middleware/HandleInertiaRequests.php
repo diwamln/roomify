@@ -32,23 +32,21 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            
-            // --- INI YANG PENTING ---
+
             // Menambahkan data 'auth' agar kita tahu siapa yang login di Vue
             'auth' => [
                 'user' => Auth::check() ? [
                     'id' => Auth::user()->id,
                     'name' => Auth::user()->name,
                     'email' => Auth::user()->email,
-                    'role' => Auth::user()->role, // Asumsi Anda punya kolom 'role'
+                    'role' => Auth::user()->role,
                 ] : null,
             ],
-            
-            // --- INI ADALAH PERBAIKAN UNTUK ERROR ANDA ---
+
             // Membagikan flash messages (success, error) ke Vue
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
             ],
             // --- BATAS PERBAIKAN ---
         ];

@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: roomify-migrate
+  # Tambahkan anotasi agar Job dihapus otomatis setelah beberapa waktu (optional)
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+        - name: migration
+          image: username-dockerhub/roomify:latest # Image yang sama dengan App
+          imagePullPolicy: Always
+          command: ["php", "artisan", "migrate", "--force"]
+          envFrom:
+            - secretRef:
+                name: roomify-secrets
+      restartPolicy: OnFailure
