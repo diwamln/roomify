@@ -1,90 +1,54 @@
-# --- TAHAP 1: Install Vendor PHP (Composer) ---
-FROM composer:2 AS vendor-build
+# --- STAGE 1: Build Dependencies (Composer) ---
+FROM composer:2 AS deps
+
 WORKDIR /app
 
-COPY src/composer.json src/composer.lock ./src/
-RUN composer install \
-    --working-dir=./src \
-    --no-dev \
-    --ignore-platform-reqs \
-    --no-scripts \
-    --prefer-dist
+# Copy hanya file composer dulu untuk memanfaatkan caching layer Docker
+COPY src/composer.json src/composer.lock ./
 
+# Install dependensi (tanpa dev tools, optimize classmap)
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts --prefer-dist
 
-# --- TAHAP 2: Build Frontend (Vue/Inertia) ---
-FROM node:20 AS frontend
-WORKDIR /app
+# --- STAGE 2: Runtime (PHP-FPM) ---
+FROM php:8.4-fpm-alpine
 
-COPY src/ ./src/
-COPY --from=vendor-build /app/src/vendor ./src/vendor
+# Install library sistem yang dibutuhkan
+# libpq-dev: untuk driver postgresql
+# libzip-dev: untuk ekstensi zip
+RUN apk add --no-cache \
+    postgresql-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    bash
 
-RUN npm install --prefix ./src
-RUN npm run build --prefix ./src
+# Install Ekstensi PHP
+# pdo_pgsql: wajib untuk Laravel + Postgres
+# opcache: wajib untuk performa production
+# pcntl: berguna jika nanti pakai queue worker
+RUN docker-php-ext-install pdo pdo_pgsql zip opcache pcntl
 
+# Konfigurasi PHP-FPM agar listen di semua interface (penting untuk Kubernetes)
+RUN sed -i 's|listen = 127.0.0.1:9000|listen = 9000|' /usr/local/etc/php-fpm.d/www.conf
 
-# --- TAHAP 3: Setup Production Server (Final) ---
-FROM php:8.2-fpm
-
-RUN apt-get update && apt-get install -y \
-    nginx \
-    supervisor \
-    libpq-dev \
-    zip unzip git curl
-
-RUN docker-php-ext-install pdo pdo_pgsql opcache
-RUN pecl install redis && docker-php-ext-enable redis
-
-# Nginx & Supervisor config
-RUN rm /etc/nginx/sites-enabled/default
-COPY nginx-deploy.conf /etc/nginx/sites-enabled/default
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-
-# ==========================================
-# FIX PENTING SAAT BUILD (biar tidak connect Redis/DB)
-# ==========================================
-ENV APP_ENV=production
-ENV APP_DEBUG=false
-
-ENV CACHE_DRIVER=array
-ENV CACHE_STORE=array
-ENV CACHE_DEFAULT=array
-
-ENV SESSION_DRIVER=array
-ENV QUEUE_CONNECTION=sync
-
-
+# Setup working directory
 WORKDIR /var/www/html
 
-# Copy source code (termasuk .env kalau ada)
-COPY src/ .
-# Render will inject env vars → write them for Laravel
-RUN printenv | grep -E 'APP_|DB_|CACHE_|SESSION_' > /var/www/html/.env || true
+# Copy folder vendor dari stage 1
+COPY --from=deps /app/vendor ./vendor
 
+# Copy seluruh source code aplikasi
+COPY src .
 
-# HAPUS .env AGAR BUILD TIDAK TERGANGGU CONFIG NYATA
-RUN rm -f .env
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Copy vendor & frontend build
-COPY --from=vendor-build /app/src/vendor ./vendor
-COPY --from=frontend /app/src/public/build ./public/build
+# Pastikan entrypoint bisa dieksekusi (antisipasi jika permission dari git salah)
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Clean old caches
-RUN rm -f bootstrap/cache/packages.php \
-    && rm -f bootstrap/cache/services.php
+# Expose port 9000 (default PHP-FPM)
+EXPOSE 9000
 
-# Set permission
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
-
-
-# ==========================================
-# BUILD ARTISAN CACHE (DIJAMIN TANPA ERROR)
-# ==========================================
-RUN php artisan optimize:clear
-
-
-EXPOSE 80
-
-# KEMBALIKAN KE PERINTAH WEB SERVER NORMAL
-CMD sh -c "php artisan migrate:fresh --seed --force && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+# Set entrypoint dan command default
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]
