@@ -1,8 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import Typed from 'typed.js';
-import { ref, onMounted, onUnmounted } from 'vue'
-
+import { ref, onMounted } from 'vue';
 
 
 const typedTarget = ref(null);
@@ -25,21 +24,6 @@ defineProps({
         type: Boolean,
     },
 });
-
-
-const isScrolled = ref(false);
-
-const handleScroll = () => {
-    isScrolled.value = window.scrollY > 10;
-};
-
-onMounted(() => {
-    window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-    window.removeEventListener("scroll", handleScroll);
-});
 </script>
 
 <template>
@@ -47,76 +31,118 @@ onUnmounted(() => {
     
     <div class="min-h-screen bg-white">
         <!-- Navbar (FULL WIDTH) -->
-    <nav
-        :class="[
-            'fixed w-full z-10 top-0 transition-all duration-300',
-            isScrolled
-                ? 'bg-white shadow-md'
-                : 'bg-transparent'
-        ]"
-    >
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                
-                <!-- Kiri: Logo + Menu -->
-                <div class="flex items-center space-x-8">
-                    <Link href="/" class="flex items-center">
-                        <img
-                            class="h-8 w-auto mr-2"
-                            src="/logo-v1.png"
-                            alt="Roomify Logo"
-                        />
-                        <span class="text-2xl !font-black text-gray-800">
-                            Roomify
-                        </span>
-                    </Link>
+        <nav class="bg-black shadow-sm fixed w-full z-10 top-0 border-b border-gray-500 ">
+            <!-- Ganti max-w-7xl menjadi w-full -->
+            <div class="w-full px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
                     
-                    <!-- Menu Items -->
-                    <div class="hidden md:flex items-center space-x-6">
-                        
-                        <Link href="#" class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">
-                            Cara Booking
+                    <!-- Kiri: Logo + Menu -->
+                    <div class="flex items-center space-x-8">
+                        <Link href="/" class="flex items-center">
+                            <img
+                                class="h-8 w-auto mr-2"
+                                src="/logo-v1.png"
+                                alt="Roomify Logo"
+                            />
+                            <span class="text-xl font-semibold text-gray-200">
+                                Roomify
+                            </span>
                         </Link>
                         
-                        <Link href="#" class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">
-                            Bantuan
+                        <!-- Menu Items -->
+                        <div class="hidden md:flex items-center space-x-6">
+                            <div class="relative group">
+                                <button class="flex items-center text-sm font-medium text-gray-300 hover:text-indigo-600 transition">
+                                    Fitur
+                                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="relative group">
+                                <button class="flex items-center text-sm font-medium text-gray-300 hover:text-indigo-600 transition">
+                                    Ruangan
+                                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <Link href="#" class="text-sm font-medium text-gray-300 hover:text-indigo-600 transition">
+                                Cara Booking
+                            </Link>
+                            
+                            <Link href="#" class="text-sm font-medium text-gray-300 hover:text-indigo-600 transition">
+                                Bantuan
+                            </Link>
+                        </div>
+                    </div>
+                    
+                    <!-- Kanan: Search + Login/Register -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Search Bar -->
+                        <div class="hidden lg:block">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    placeholder="Search" 
+                                    class="w-64 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                                <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Tombol Log In -->
+                        <Link
+                            v-if="canLogin"
+                            :href="route('login')"
+                            class="text-sm font-medium text-gray-200 hover:text-indigo-600 transition duration-150 ease-in-out"
+                        >
+                            Log In
+                        </Link>
+                        
+                        <!-- Tombol Sign Up -->
+                        <Link
+                            v-if="canRegister"
+                            :href="route('register')"
+                            class="inline-flex items-center px-5 py-2 text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out"
+                        >
+                            Sign Up
                         </Link>
                     </div>
                 </div>
-                
-                <!-- Kanan -->
-                <div class="flex items-center space-x-4">
-
-                    <!-- Log In -->
-                    <Link
-                        v-if="canLogin"
-                        :href="route('login')"
-                        class="text-sm font-medium text-gray-800 hover:text-indigo-600 transition duration-150 ease-in-out"
-                    >
-                        Log In
-                    </Link>
-
-                    <!-- Sign Up -->
-                    <Link
-                        v-if="canRegister"
-                        :href="route('register')"
-                        class="inline-flex items-center px-5 py-2 text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out"
-                    >
-                        Sign Up
-                    </Link>
-                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+
         <!-- Hero Section -->
-        <main class="">
-            <section class="pt-16 relative text-gray-800 overflow-hidden
-            bg-[linear-gradient(225deg,#82cde0_0%,#95c9de_16.667%,#aec8d8_33.333%,#cac9d0_50%,#e8cec7_66.667%,#ffd5c2_83.333%,#ffddc0_100%)]
-            bg-[linear-gradient(315deg,#abccff_0%,#bccdff_16.667%,#d8ccff_33.333%,#f4c9f7_50%,#ffc5f0_66.667%,#ffc0ed_83.333%,#ffbaed_100%)]
-
-
-            ">
-
+        <main class="pt-16">
+            <section class="relative bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 text-white overflow-hidden">
+                <!-- Stars Background -->
+                <div class="absolute inset-0">
+                    <!-- Large stars -->
+                    <div class="absolute top-20 left-10 w-1 h-1 bg-white rounded-full animate-pulse"></div>
+                    <div class="absolute top-40 right-32 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 0.5s"></div>
+                    <div class="absolute top-60 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse" style="animation-delay: 1s"></div>
+                    <div class="absolute bottom-40 right-1/4 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 1.5s"></div>
+                    <div class="absolute top-32 right-1/3 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 2s"></div>
+                    <div class="absolute bottom-60 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse" style="animation-delay: 0.8s"></div>
+                    <div class="absolute top-1/2 right-20 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 1.2s"></div>
+                    
+                    <!-- Small stars -->
+                    <div class="absolute top-24 right-1/2 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute top-48 left-20 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute bottom-32 right-40 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute top-72 right-1/4 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute bottom-48 left-1/4 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute top-44 left-1/3 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute bottom-52 right-1/3 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute top-36 right-16 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute top-80 left-16 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                    <div class="absolute bottom-24 left-1/2 w-0.5 h-0.5 bg-white/60 rounded-full"></div>
+                </div>
                 
                 <!-- Background decorative elements -->
                 <div class="absolute inset-0 opacity-10">
@@ -124,162 +150,67 @@ onUnmounted(() => {
                     <div class="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl"></div>
                 </div>
 
+                <!-- Container Full Width -->
                 <div class="relative w-full px-4 sm:px-6 lg:px-8 py-12 md:py-20 pb-32">
                     <div class="text-center mb-12">
-                        <!-- Emoji -->
-                        <!-- <div class=" flex justify-center">
-                            <img src="/images/1.png" alt="Kampus" class="w-32 h-32" />
-                        </div> -->
-
-                        
                         <!-- Main Heading -->
-                        <h1 class="text-3md md:text-5xl font-bold leading-none mb-6">
+                        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
                             Platform booking ruangan<br />
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-400">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                                 untuk kampus modern
                             </span>
                         </h1>
                         
                         <!-- Sub-headline -->
-                        <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 ">
-                            <span ref="typedTarget" class="text-2xl "></span>
+                        <p class="text-lg md:text-xl text-indigo-200 max-w-2xl mx-auto mb-8">
+                            <span ref="typedTarget" class="text-2xl"></span>
                             <!-- Siapakah yang akan menggunakan Roomify hari ini? -->
                         </p>
-
-                        <div class="text-center relative z-20">
-                            <Link
-                                :href="route('register')"
-                                class="inline-flex items-center px-5 py-3 text-lg font-semibold rounded-2xl text-indigo-950 bg-white hover:bg-gray-100 transition duration-200 shadow-2xl"
-                            >
-                                Pesan Ruangan
-                            </Link>
-                        </div>
-
-
-
-                        <br/>
                         
-                       <section class=" text-gray-800 py-10">
-                            <div class="max-w-6xl mx-auto px-6 flex justify-center">
-                                <div class="flex gap-8">
-
-                                    <!-- 1 -->
-                                    <div class="flex flex-col items-center gap-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                    <div class="text-sm font-semibold leading-tight">
-                                        Cepat &<br>Mudah
-                                    </div>
-                                </div>
-                                
-                                <!-- 2 -->
-                                <div class="flex flex-col items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 7V3m8 4V3M3 11h18" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9.5 15.5l2 2L16.5 12" />
-                                </svg>
-                                <div class="text-sm font-semibold leading-tight">
-                                    Real-time<br>Jadwal
-                                </div>
-                                </div>
-                                
-                                <!-- 3 -->
-                                <div class="flex flex-col items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 12l2 2 4-4" />
-                                </svg>
-                                    <div class="text-sm font-semibold leading-tight">
-                                    Proses<br>Transparan
-                                </div>
-                                </div>
-                                
-                                <!-- 4 -->
-                                <div class="flex flex-col items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3 21h18M7 21V7a2 2 0 012-2h6a2 2 0 012 2v14" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h.01" />
-                                    </svg>
-                                    <div class="text-sm font-semibold leading-tight">
-                                        Info<br>Lengkap
-                                    </div>
-                                </div>
-                                
-                                <!-- 5 -->
-                                <div class="flex flex-col items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 12h6M9 16h6M8 6h8a2 2 0 012 2v11H6V8a2 2 0 012-2z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 10h.01" />
-                                </svg>
-                                <div class="text-sm font-semibold leading-tight">
-                                    Surat<br>Otomatis
-                                </div>
-                                </div>
-
-                                <!-- 6 -->
-                                <div class="flex flex-col items-center gap-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
-                                    <path d="M11 18h2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <div class="text-sm font-semibold leading-tight">
-                                    Mobile<br>Friendly
-                                </div>
-                            </div>
+                        <!-- Emoji -->
+                        <div class="mb-12 flex justify-center">
+                            <img src="/images/1.png" alt="Kampus" class="w-32 h-32" />
                         </div>
-                        </div>
-                            </section>
-
-                        <!-- CARD -->
-                         <!-- <div class="w-[100%] flex justify-center items-center">
-
-                             <div class="grid grid-cols-4 grid-rows-11 gap-4 w-[70%]">
-                                 <div class="col-span-2 row-span-3 ">
-                                    <div class="isolate min-h-44 rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5">
-                                        <h1>Peminjaman Ruangan Lebih Mudah</h1>
-                                        <p></p>
-                                    </div>
-                                 </div>
-                                 <div class="col-span-2 row-span-3 col-start-3 ">
-                                    <div class="isolate min-h-44 rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5">
-                                        2
-                                    </div>
-                                 </div>
-                                 <div class="row-span-8 row-start-4 ">
-                                    <div class="isolate  min-h-44 rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5">
-                                        3
-                                    </div>
-                                 </div>
-                                 <div class="col-span-3 row-span-5 row-start-4 ">
-                                    <div class="isolate min-h-44 rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5">
-                                        4
-                                    </div>
-                                 </div>
-                                 <div class="col-span-3 row-span-3 col-start-2 row-start-9 ">
-                                    <div class="isolate min-h-44 rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5">
-                                        5
-                                    </div>
-                                 </div>
-                             </div>
-                         </div> -->
-    
-                        
                     </div>
 
- 
+                    <!-- Category Cards Grid with Images -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 max-w-4xl mx-auto">
+                        <!-- Mahasiswa -->
+                        <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
+                            <div class="mb-3 h-16 flex items-center justify-center">
+                                <img src="/images/students.png" alt="Mahasiswa" class="w-16 h-16 object-contain" />
+                            </div>
+                            <p class="text-sm font-medium">Mahasiswa</p>
+                            <p class="text-xs text-indigo-300 mt-1">Booking ruangan untuk kegiatan</p>
+                        </div>
+                        
+                        <!-- Dosen -->
+                        <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
+                            <div class="mb-3 h-16 flex items-center justify-center">
+                                <img src="/images/teacher.png" alt="Dosen" class="w-16 h-16 object-contain" />
+                            </div>
+                            <p class="text-sm font-medium">Dosen</p>
+                            <p class="text-xs text-indigo-300 mt-1">Pesan lab & ruang kelas</p>
+                        </div>
+                        
+                        <!-- Admin -->
+                        <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
+                            <div class="mb-3 h-16 flex items-center justify-center">
+                                <img src="/images/admin.png" alt="Admin" class="w-16 h-16 object-contain" />
+                            </div>
+                            <p class="text-sm font-medium">Admin</p>
+                            <p class="text-xs text-indigo-300 mt-1">Kelola & setujui booking</p>
+                        </div>
+                        
+                        <!-- Staff -->
+                        <div class="bg-indigo-800/40 backdrop-blur-sm border border-indigo-700/50 rounded-lg p-6 hover:bg-indigo-800/60 transition cursor-pointer">
+                            <div class="mb-3 h-16 flex items-center justify-center">
+                                <img src="/images/team.png" alt="Staff" class="w-16 h-16 object-contain" />
+                            </div>
+                            <p class="text-sm font-medium">Staff</p>
+                            <p class="text-xs text-indigo-300 mt-1">Manajemen ruangan</p>
+                        </div>
+                    </div>
 
                     <!-- CTA Button -->
                     <div class="text-center relative z-20">
