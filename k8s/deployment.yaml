@@ -19,6 +19,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 9000
+          envFrom:
+            - secretRef:
+                name: roomify-secrets
           # INI BAGIAN PENTING: Inject ENV dari Secret
           volumeMounts:
             - name: shared-assets
