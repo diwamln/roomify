@@ -20,9 +20,6 @@ spec:
           ports:
             - containerPort: 9000
           # INI BAGIAN PENTING: Inject ENV dari Secret
-          envFrom:
-            - secretRef:
-                name: roomify-secrets
           volumeMounts:
             - name: shared-assets
               mountPath: /shared-public
